@@ -143,3 +143,28 @@ def test_model(model,dataloaders,dataset_sizes,criterion):
         print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
     return epoch_acc,epoch_loss
+
+def eval_model(model,dataloaders,dataset_sizes,criterion):
+    print('evaluating the model')
+    if torch.cuda.is_availabel():
+        model.cuda()
+    model.eval()
+    for phase in ['train','val']:
+        running_loss = 0.0
+        running_acc = 0.0
+        with torch.no_grad():
+            for inputs,labels in tqdm(dataloaders[phase]):
+                if torch.cuda.is_available():
+                    inputs,labels = inputs.cuda(),labels.cuda()
+                outputs = model(inputs)
+                _,preds = torch.max(inputs)
+                loss = criterion(outputs,labels)
+                running_loss += loss.item() * inputs.size(0)
+                running_acc += torch.sum(preds == labels.data)
+            epoch_loss = running_loss /dataset_sizes[phase]
+            epoch_acc = running_acc / dataset_sizes[phase]
+            epoch_acc = epoch_acc.item()
+            print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase,epoch_loss,epoch_acc))
+    
+
+        
