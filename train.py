@@ -56,8 +56,10 @@ def train_model(model, dataloaders, dataset_sizes , criterion, optimizer, schedu
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-
-    model.cuda()
+    
+    if torch.cuda.is_available():
+        model.cuda()
+    
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
@@ -74,8 +76,9 @@ def train_model(model, dataloaders, dataset_sizes , criterion, optimizer, schedu
 
             # Iterate over data.
             for inputs, labels in tqdm(dataloaders[phase]):
-                inputs = inputs.cuda()
-                labels = labels.cuda()
+                if torch.cuda.is_available():
+                    inputs = inputs.cuda()
+                    labels = labels.cuda()
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -120,13 +123,15 @@ def train_model(model, dataloaders, dataset_sizes , criterion, optimizer, schedu
 def test_model(model,dataloaders,dataset_sizes,criterion):
     print("validation model:")
     phase = "val"
-    model.cuda()
+    if torch.cuda.is_available():
+        model.cuda()
     model.eval()
     with torch.no_grad():
         running_loss = 0.0
         running_acc = 0.0
         for inputs,labels in tqdm(dataloaders[phase]):
-            inputs,labels = inputs.cuda(),labels.cuda()
+            if torch.cuda.is_available():
+                inputs,labels = inputs.cuda(),labels.cuda()
             outputs = model(inputs)
             _,preds = torch.max(outputs,1)
             loss = criterion(outputs,labels)
